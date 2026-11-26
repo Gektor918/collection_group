@@ -1,4 +1,4 @@
-
+import json
 
 class ApiExampleCollectionGroup:
 
@@ -8,7 +8,7 @@ class ApiExampleCollectionGroup:
         "```json\n"
         + json.dumps(
             {
-                "company_id": 4,
+                "company_id": 1,
                 "lang": {
                     "en": {
                         "name": "Promo",
@@ -32,7 +32,7 @@ class ApiExampleCollectionGroup:
         "```json\n"
         + json.dumps(
             {
-                "company_id": 4,
+                "company_id": 1,
                 "orders": {
                     1: 10,
                     2: 20,
@@ -50,7 +50,7 @@ class ApiExampleCollectionGroup:
         "**Example:**\n"
         "```json\n"
         "{\n"
-        '  "company_id": 4,\n'
+        '  "company_id": 1,\n'
         '  "id": 12,\n'
         '  "disable": false,\n'
         '  "lang": {\n'
@@ -66,7 +66,7 @@ class ApiExampleCollectionGroup:
         "**Example:**\n"
         "```json\n"
         "{\n"
-        '  "company_id": 4,\n'
+        '  "company_id": 1,\n'
         '  "id": 12,\n'
         '  "new_collections": [1, 2, 3],\n'
         '  "delete_collections": [4, 5]\n'

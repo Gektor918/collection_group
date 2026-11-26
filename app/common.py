@@ -19,6 +19,6 @@ async def managed_transaction(session: AsyncSession):
 async def delete_file_by_url(storage_manager, url: str | None) -> None:
     if not url: return 
     try:
-        await storage_manager.process_delete_file(url)
+        await storage_manager.delete_by_url(url)
     except Exception:
         logger.warning("Failed delete storage object %s", url, exc_info=True)

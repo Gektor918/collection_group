@@ -1,6 +1,10 @@
 from pydantic import BaseModel, Field
+from enum import Enum as DefaultEnum
 
-from schemas.sch_default_enum import languageEnum
+
+class languageEnum(str, DefaultEnum):
+    en = "en"
+    ru = "ru"
 
 
 class CollectionGroupLocale(BaseModel):
@@ -65,3 +69,17 @@ class CollUpdateList(BaseModel):
 class CollectionGroupUpdateOrderRequest(BaseModel):
     company_id: int
     orders: dict[int, int] = Field(..., examples=[{"2": 1, "1": 2}])
+
+
+class CollectionRealmItem(BaseModel):
+    id: int
+    group_id: int | None = None
+    company_id: int | None = None
+    order: int | None = None
+
+
+class CollectionRealmList(BaseModel):
+    items: list[CollectionRealmItem]
+    total: int = Field(default=0, description="всего realm'ов в компании")
+    assigned: int = Field(default=0, description="привязано к какой-либо группе")
+    unassigned: int = Field(default=0, description="group_id IS NULL — свободны или отвязаны")

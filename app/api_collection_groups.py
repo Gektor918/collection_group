@@ -1,19 +1,34 @@
 from fastapi import APIRouter, Depends, UploadFile
 
-from db.dependencies import (get_company_access_dependency, get_router_service,
+from dependencies import (get_company_access_dependency, get_router_service,
                              get_verified_payload_access_dependency)
 from db.models.user import AdminUser, BaseUser
-from schemas.description_api import ApiExampleCollectionGroup
-from services.collection_group.schemas import (
+from description_api import ApiExampleCollectionGroup
+from schemas import (
     CollectionGroupCreateRequest, CollectionGroupUpdateListCommon,
     CollectionGroupUpdateOrderRequest, CollectionGroupUpdateRequest,
-    CollItemId, CollItems, CollList, CollOrders, CollUpdateList)
-from services.collection_group.utils.common import delete_file_by_url
+    CollItemId, CollItems, CollList, CollOrders, CollUpdateList, CollectionRealmList)
+from common import delete_file_by_url
 from services.router_service import RouterService
 from settings import TYPE_POINT_CMS
 
 router = APIRouter(prefix="/tour", tags=["collection_groups"])
 
+
+@router.get("/realm", response_model=CollectionRealmList)
+async def get_collection_realms(
+    company_id: int,
+    group_id: int | None = None,
+    assigned: bool | None = None,
+    user: BaseUser | AdminUser = Depends(get_company_access_dependency(TYPE_POINT_CMS)),
+    router_service: RouterService = Depends(get_router_service),
+):
+    cgs = router_service.collection_group_service()
+    return await cgs.list_realms(
+        company_id=company_id,
+        group_id=group_id,
+        assigned=assigned,
+    )
 
 @router.get("/collection_group/all", response_model=CollList)
 async def get_collection_groups(

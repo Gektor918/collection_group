@@ -1,14 +1,11 @@
 from dataclasses import dataclass
 
-from sqlalchemy import case, select, update
+from sqlalchemy import case, select, update, func
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from db.models.tour import (CollectionGroup, CollectionGroupTranslation,
+from db.models.models import (CollectionGroup, CollectionGroupTranslation,
                             CollectionRealm)
-from schemas.sch_default_enum import languageEnum
-
-from .schemas import CollectionGroupLocale
 
 
 @dataclass(frozen=True)
@@ -71,7 +68,7 @@ class CollectionGroupRepository:
         self,
         group_id: int,
         company_id: int,
-        lang: dict[languageEnum, CollectionGroupLocale] | None = None,
+        lang: dict| None = None,
         image: str | None = None,
         disable: bool | None = None,
     ) -> GroupUpdateResult | None:
@@ -199,3 +196,37 @@ class CollectionGroupRepository:
         )
         result = await self.session.execute(stmt)
         return {group_id: new_order for group_id, new_order in result}
+
+    async def count_realms(self, company_id: int) -> tuple[int, int, int]:
+        row = (await self.session.execute(
+            select(
+                func.count().label("total"),
+                func.count().filter(CollectionRealm.group_id.is_not(None)).label("assigned"),
+            ).where(CollectionRealm.company_id == company_id)
+        )).one()
+        total, assigned = row.total or 0, row.assigned or 0
+        return total, assigned, total - assigned
+
+
+    async def list_realms(
+        self,
+        company_id: int,
+        *,
+        group_id: int | None = None,
+        assigned: bool | None = None,
+    ) -> list[CollectionRealm]:
+        stmt = select(CollectionRealm).where(CollectionRealm.company_id == company_id)
+
+        if group_id is not None:                      # ← без этого `group_id = NULL`
+            stmt = stmt.where(CollectionRealm.group_id == group_id)
+        if assigned is True:
+            stmt = stmt.where(CollectionRealm.group_id.is_not(None))
+        elif assigned is False:
+            stmt = stmt.where(CollectionRealm.group_id.is_(None))
+
+        stmt = stmt.order_by(
+            CollectionRealm.group_id.nulls_last(),
+            CollectionRealm.order.nulls_last(),
+            CollectionRealm.id,
+        )
+        return list((await self.session.scalars(stmt)).all())

@@ -2,32 +2,58 @@ from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from db.models.tour import CollectionGroup, CollectionGroupTranslation
-from schemas.sch_default_enum import languageEnum
+from services.dto import CollectionGroup, CollectionGroupTranslation
 
-from .repository import CollectionGroupRepository
-from .schemas import (CollectionGroupDTO, CollectionGroupLocale,
-                      CollectionGroupLocaleItem)
-from .utils.common import managed_transaction
+from repository import CollectionGroupRepository
+
+from schemas import (CollectionGroupDTO, CollectionGroupLocale,
+                      CollectionGroupLocaleItem, languageEnum, CollectionRealmList, CollectionRealmItem)
+from common import managed_transaction
 
 
 class CollectionGroupNotFoundError(Exception):
     pass
+
 
 @dataclass(frozen=True)
 class GroupUpdateOut:
     dto: CollectionGroupDTO
     old_image: str | None
 
+
 @dataclass(frozen=True)
 class GroupDeleteOut:
     group_id: int
     old_image: str | None
 
+
 class CollectionGroupService:
     def __init__(self, repo: CollectionGroupRepository, session: AsyncSession):
         self.repo = repo
         self.session = session
+
+    async def list_realms(
+        self,
+        company_id: int,
+        *,
+        group_id: int | None = None,
+        assigned: bool | None = None,
+    ) -> CollectionRealmList:
+        items = await self.repo.list_realms(
+            company_id=company_id, group_id=group_id, assigned=assigned
+        )
+        total, assigned_count, unassigned = await self.repo.count_realms(company_id)
+        return CollectionRealmList(
+            items=[CollectionRealmItem(
+                id=r.id,
+                group_id=r.group_id,
+                company_id=r.company_id,
+                order=r.order,
+            ) for r in items],
+            total=total,
+            assigned=assigned_count,
+            unassigned=unassigned,
+        )
 
     async def list_groups(
         self,
