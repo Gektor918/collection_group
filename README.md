@@ -1,3 +1,15 @@
+## Демо в ветке `develop`
+
+В `develop` не срез, а модуль целиком:, Postgres, миграции и сид с тестовыми данными. В базе уже лежат две компании (Demo Retail и Second Brand) и четыре группы с разными случаями: полная, `disable=True`, `archived=True` без переводов и чужая компания
+
+**git clone https://github.com/Gektor918/collection_group**
+
+**cd collection_group/**
+
+**git switch develop**
+
+**sudo docker compose up --build -d**
+
 ## Что это за срез
 
 Это **фрагменты реальных файлов** рабочего проекта, собранные в одну папку. Не самостоятельное приложение: не собирается и не запускается.
