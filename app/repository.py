@@ -207,7 +207,6 @@ class CollectionGroupRepository:
         total, assigned = row.total or 0, row.assigned or 0
         return total, assigned, total - assigned
 
-
     async def list_realms(
         self,
         company_id: int,
@@ -217,7 +216,7 @@ class CollectionGroupRepository:
     ) -> list[CollectionRealm]:
         stmt = select(CollectionRealm).where(CollectionRealm.company_id == company_id)
 
-        if group_id is not None:                      # ← без этого `group_id = NULL`
+        if group_id is not None:
             stmt = stmt.where(CollectionRealm.group_id == group_id)
         if assigned is True:
             stmt = stmt.where(CollectionRealm.group_id.is_not(None))

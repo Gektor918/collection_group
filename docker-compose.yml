@@ -1,20 +1,46 @@
+name: collection_group
+
 services:
   db:
     image: postgres:16-alpine
     environment:
-      POSTGRES_USER: cms
-      POSTGRES_PASSWORD: cms
-      POSTGRES_DB: cms
+      POSTGRES_USER: ${POSTGRES_USER:-cms}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-cms}
+      POSTGRES_DB: ${POSTGRES_DB:-cms}
     ports:
-      - "5432:5432"
+      - "${POSTGRES_PORT:-5432}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
-    restart: unless-stopped
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U cms -d cms"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-cms} -d ${POSTGRES_DB:-cms}"]
       interval: 3s
       timeout: 3s
       retries: 20
+    restart: unless-stopped
+
+  app:
+    build:
+      context: .
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+asyncpg://${POSTGRES_USER:-cms}:${POSTGRES_PASSWORD:-cms}@db:5432/${POSTGRES_DB:-cms}
+      MEDIA_ROOT: /code/media
+      SEED_ON_START: "1"
+    ports:
+      - "${APP_PORT:-8000}:8000"
+    volumes:
+      - media:/code/media
+    healthcheck:
+      test: ["CMD", "python", "/code/docker/healthcheck.py"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+      start_period: 30s
+    restart: unless-stopped
 
 volumes:
   pgdata:
+  media:
